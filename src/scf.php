@@ -37,11 +37,42 @@ Flight::before("start",function(&$params, &$output){
     $scFlight['get']=$reqGet;
 	//post
     $post=[];
-    if(stristr($_SERVER['HTTP_CONTENT_TYPE'],'x-www-form-urlencoded')){
-        parse_str($scFlight['event']['body'],$post);
+    $file=[];
+    if($_SERVER['REQUEST_METHOD']=="POST"){
+        if(stristr($_SERVER['HTTP_CONTENT_TYPE'],'x-www-form-urlencoded')){
+            //urlform
+            parse_str($scFlight['event']['body'],$post);
+        }else if(stristr($_SERVER['HTTP_CONTENT_TYPE'],'ultipart/form-data')){
+            //multipart
+            $data = "Content-Type: ".$_SERVER['HTTP_CONTENT_TYPE']."\r\n\r\n";
+            $data.=$scFlight['event']['body'];
+            $stream = fopen('php://temp', 'rw');
+            fwrite($stream, $data);
+            rewind($stream);
+            $document = new StreamedPart($stream);
+            if ($document->isMultiPart()) {
+                $parts = $document->getParts();
+                foreach($parts as $a){
+                    if($a->isFile()) {
+                        $tmpFile=stream_get_meta_data(tmpfile())['uri'];
+                        file_put_contents($tmpFile,$a->getBody());
+                        $file[$a->getName()]=[
+                            "name"=>$a->getFileName(),
+                            "type"=>$a->getMimeType(),
+                            "size"=>strlen($a->getBody()),
+                            "tmp_name"=>$tmpFile
+                        ];
+                    }else{
+                        $post[$a->getName()]=$a->getBody();
+                    }
+                }
+            }
+        }
     }
     $scFlight['post']=$post;
+    $scFlight['file']=$file;
     $_POST=$post;
+    $_FILES=$file;
 	//路径配置
     if(!Flight::get("scf_name"))Flight::set("scf_name",$scFlight['context']->function_name);
     $path=_scf_strrep1('/'.Flight::get("scf_name"),'',$scFlight['event']['path']);
