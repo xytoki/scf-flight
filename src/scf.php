@@ -117,7 +117,7 @@ function _scf_load(){
 		$tmpHeaders=$response->headers;
 		$tmpHeaders["Content-Length"]=(string) $response->getContentLength();
 		$tmpHeaders['X-scf-path']=Flight::request()->url;
-		$tmpHeaders['Content-Type']=isset($tmpHeaders['Content-Type'])?$tmpHeaders['Content-Type']:"text/html";
+		$tmpHeaders['Content-Type']=isset($tmpHeaders['Content-Type'])?$tmpHeaders['Content-Type']:"text/html;charset=utf-8";
 		$output=[
 			'isBase64Encoded' => false,
 			'statusCode' => $response->status,
