@@ -75,9 +75,11 @@ Flight::before("start",function(&$params, &$output){
     $_FILES=$file;
 	//路径配置
     if(!Flight::get("scf_name"))Flight::set("scf_name",$scFlight['context']->function_name);
+    if(!Flight::get("scf_base"))Flight::set("scf_base",'/'.$scFlight['event']['requestContext']['stage'].'/'.$scFlight['context']->function_name);
     $path=_scf_strrep1('/'.Flight::get("scf_name"),'',$scFlight['event']['path']);
 	Flight::request()->__construct();
     Flight::request()->url=$path;
+    Flight::request()->base=Flight::get("scf_base");
     if($params[2]){
         Flight::set("scf_static",$params[2]);
         Flight::route("*",function(){
