@@ -1,11 +1,5 @@
 <?php
 use Riverline\MultiPartParser\StreamedPart;
-function _scf_patch(){
-    $flight=dirname(dirname(dirname(dirname(__FILE__)))).'/mikecao/flight/flight/Flight.php';
-    $patched=dirname(__FILE__).'/Flight/Flight.php';
-	copy($patched,$flight);
-}
-_scf_patch();
 function _scf_strrep1($needle, $replace, $haystack) {
     $pos = strpos($haystack, $needle);
     if ($pos === false) {
