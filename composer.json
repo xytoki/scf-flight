@@ -4,7 +4,8 @@
     "type": "library",
     "require": {
         "mikecao/flight": "^1.3",
-        "riverline/multipart-parser": "^2.0"
+        "riverline/multipart-parser": "^2.0",
+        "ralouphie/mimey": "^2.1"
     },
     "license": "MIT",
     "authors": [
