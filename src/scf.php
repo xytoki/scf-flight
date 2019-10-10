@@ -99,4 +99,5 @@ Flight::after("start",function(&$params, &$output){
         'headers' =>$tmpHeaders,
         'body' => $response->body
     ];
+    ob_end_clean();
 });
