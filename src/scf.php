@@ -78,6 +78,22 @@ Flight::before("start",function(&$params, &$output){
     $path=_scf_strrep1('/'.Flight::get("scf_name"),'',$scFlight['event']['path']);
 	Flight::request()->__construct();
     Flight::request()->url=$path;
+    if($params[2]){
+        Flight::set("scf_static",$params[2]);
+        Flight::route("*",function(){
+            $file=Flight::get("scf_static").Flight::request()->url;
+            if(!is_file($file))return true;
+            $ext = pathinfo($file, PATHINFO_EXTENSION);
+            $mimes = new \Mimey\MimeTypes;
+            $filemime=$mimes->getMimeType($ext);
+            if($filemime=="application/php"){
+                echo "No input file specified.";
+                return;
+            }
+            Flight::response()->header("Content-Type",$filemime);
+            echo file_get_contents($file);
+        });
+    }
 });
 Flight::after("start",function(&$params, &$output){
     global $scFlight;
@@ -90,7 +106,7 @@ Flight::after("start",function(&$params, &$output){
         //$response->send();
     }
     $tmpHeaders=$response->headers;
-    $tmpHeaders["Content-Length"]=$response->getContentLength();
+    $tmpHeaders["Content-Length"]=(string) $response->getContentLength();
     $tmpHeaders['X-scf-path']=Flight::request()->url;
     $tmpHeaders['Content-Type']=isset($tmpHeaders['Content-Type'])?$tmpHeaders['Content-Type']:"text/html";
     $output=[
