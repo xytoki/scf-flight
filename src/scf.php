@@ -19,6 +19,11 @@ class xyTokiSCF{
         Flight::request()->__construct();
         Flight::response()->clear();
 		Flight::router()->reset();
+		global $_GET,$_POST,$_COOKIE,$_FILES;
+		$_GET=[];
+		$_POST=[];
+		$_COOKIE=[];
+		$_FILES=[];
 	}
 	static function parseHeaders(){
 		$reqHeaders=array_merge(
