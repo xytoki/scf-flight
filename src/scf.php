@@ -124,6 +124,7 @@ class xyTokiSCF{
 			if(!Flight::get("scf_base"))Flight::set("scf_base",'/'.self::$scFlight['event']['requestContext']['stage'].'/'.self::$scFlight['context']->function_name);
 			$path=self::strrep1('/'.Flight::get("scf_name"),'',self::$scFlight['event']['path']);
 			Flight::request()->url=$path;
+			Flight::request()->method=$_SERVER['REQUEST_METHOD'];
 			Flight::request()->base=Flight::get("scf_base");
 			if($params[2]){
 				Flight::set("scf_static",$params[2]);
