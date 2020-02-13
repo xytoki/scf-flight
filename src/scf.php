@@ -3,7 +3,7 @@ use Riverline\MultiPartParser\StreamedPart;
 class xyTokiSCF{
 	static $scFlight;
 	static $cookies;
-	static $setcookies;
+	static $setcookies=[];
 	static function strrep1($needle, $replace, $haystack) {
 		$pos = strpos($haystack, $needle);
 		if ($pos === false) {
@@ -17,7 +17,8 @@ class xyTokiSCF{
 	}
     static function clean(){
         Flight::request()->__construct();
-        Flight::response()->clear();
+		Flight::response()->clear();
+		Flight::response()->sent=false;
 		Flight::router()->reset();
 		global $_GET,$_POST,$_COOKIE,$_FILES;
 		$_GET=[];
@@ -145,7 +146,9 @@ class xyTokiSCF{
 			self::outputCookies();
 			$response = Flight::response();
 			$tmpHeaders=$response->headers;
-			$response->write(ob_get_clean());
+			if(!$response->sent){
+				$response->write(ob_get_clean());
+			}
 			ob_end_clean();
 			ob_end_clean();
 			ob_end_clean();
@@ -160,7 +163,7 @@ class xyTokiSCF{
 			];
 		});
 	}
-	function outputCookies(){
+	static function outputCookies(){
 		$count = 0;
 		foreach(self::$setcookies as $name=>$cookie){
 			$count++;
@@ -179,7 +182,7 @@ class xyTokiSCF{
 			Flight::response()->header($key,$header);
 		}
 	}
-	function setcookie($name, $value, array $options=[]) {
+	static function setcookie($name, $value, array $options=[]) {
 		self::$cookies[$name] = $value;
 		self::$setcookies[$name] = [$value,$options];
 		$_COOKIE[$name] = $value;
