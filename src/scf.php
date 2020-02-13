@@ -2,6 +2,7 @@
 use Riverline\MultiPartParser\StreamedPart;
 class xyTokiSCF{
 	static $scFlight;
+	static $cookies;
 	static function strrep1($needle, $replace, $haystack) {
 		$pos = strpos($haystack, $needle);
 		if ($pos === false) {
@@ -81,7 +82,18 @@ class xyTokiSCF{
 			$_FILES=$file;
 	}
 	static function parseCookies(){
-
+		global $_COOKIE;
+		$txtcookies=$_SERVER['HTTP_COOKIE'];
+		if(!$txtcookies)$txtcookies="";
+		$arrcookies=explode(";",$txtcookies);
+		$cookies=[];
+		foreach($arrcookies as $one){
+			$one = explode("=",trim($one));
+			$key = array_shift($one);
+			$cookies[trim($key)]=urldecode(trim(implode('',$one)));
+		}
+		$_COOKIE=$cookies;
+		self::$cookies=$cookies;
 	}
 	static function load(){
 		self::replaceClasses();
