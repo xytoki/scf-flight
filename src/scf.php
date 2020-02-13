@@ -2,6 +2,8 @@
 use Riverline\MultiPartParser\StreamedPart;
 class xyTokiSCF{
 	static $scFlight;
+	static $event;
+	static $context;
 	static $cookies;
 	static $setcookies=[];
 	static function strrep1($needle, $replace, $haystack) {
@@ -16,7 +18,6 @@ class xyTokiSCF{
 		require dirname(__FILE__).'/Flight/Response.php';
 	}
     static function clean(){
-        Flight::request()->__construct();
 		Flight::response()->clear();
 		Flight::response()->sent=false;
 		Flight::router()->reset();
@@ -115,6 +116,8 @@ class xyTokiSCF{
 				"event"=>json_decode(json_encode($params[0]),true),
 				"context"=>$params[1]
 			];
+			self::$event=self::$scFlight["event"];
+			self::$context=self::$scFlight["context"];
 			self::parseHeaders();
 			self::parseGet();
 			self::parsePost();
@@ -123,9 +126,12 @@ class xyTokiSCF{
 			if(!Flight::get("scf_name"))Flight::set("scf_name",self::$scFlight['context']->function_name);
 			if(!Flight::get("scf_base"))Flight::set("scf_base",'/'.self::$scFlight['event']['requestContext']['stage'].'/'.self::$scFlight['context']->function_name);
 			$path=self::strrep1('/'.Flight::get("scf_name"),'',self::$scFlight['event']['path']);
+
+			Flight::request()->__construct();
 			Flight::request()->url=$path;
 			Flight::request()->method=$_SERVER['REQUEST_METHOD'];
 			Flight::request()->base=Flight::get("scf_base");
+			
 			if($params[2]){
 				Flight::set("scf_static",$params[2]);
 				Flight::route("*",function(){
