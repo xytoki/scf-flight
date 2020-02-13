@@ -38,6 +38,7 @@ class xyTokiSCF{
 			self::$scFlight['event']['queryString'],
 			self::$scFlight['event']['queryStringParameters']
 		);
+		array_map("urldecode",$reqGet);
 		$_GET=$reqGet;
 		self::$scFlight['get']=$reqGet;
 	}
