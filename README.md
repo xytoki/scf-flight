@@ -9,18 +9,20 @@ $_POST
 $_GET
 $_FILES //不能太大
 $_SERVER
+$_COOKIE
 Flight::request()->data
 Flight::request()->body
 Flight::response()->header("X-By","scFlight");
 Flight::response()->status(404);
+Flight::setcookie($key,$value,$options);    //php 7.3 setcookie方式
 //Flight框架中的一切函数
 //等等
 ```
 ### 不可用
 ```php
-header();
-setcookie();
-session_start();//需要手动设置cookie
+header();           
+setcookie();        //使用Flight::setcookie();代替
+session_start();    //不支持，因为scf不保存session
 ```
 ### 安装
 须同时安装`mikecao/flight`和`xytoki/scf-flight`。本项目暂未发布至composer，需从github安装。
