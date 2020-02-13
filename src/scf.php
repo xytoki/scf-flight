@@ -17,42 +17,31 @@ class xyTokiSCF{
         Flight::request()->__construct();
         Flight::response()->clear();
         Flight::router()->reset();
-    }
-	static function load(){
-		self::replaceClasses();
-		Flight::before("start",function(&$params, &$output){
-            //全局清理
-            self::clean();
-
-			//保存全局变量
-			global $_GET,$_POST;
-            var_dump(Flight::response());
-			self::$scFlight=[
-				"event"=>json_decode(json_encode($params[0]),true),
-				"context"=>$params[1]
-			];
-			
-			//Header
-			$reqHeaders=array_merge(
-				self::$scFlight['event']['headers'],
-				self::$scFlight['event']['headerParameters']
-			);
-			foreach($reqHeaders as $a=>$b){
-				$_SERVER['HTTP_'.str_replace("-","_",strtoupper($a))]=$b;
-			}
-			
-			//ip method
-			$_SERVER['REMOTE_ADDR']=self::$scFlight['event']["requestContext"]['sourceIp'];
-			$_SERVER['REQUEST_METHOD']=strtoupper(self::$scFlight['event']['httpMethod']);
-			$_SERVER['CONTENT_TYPE']=$_SERVER['HTTP_CONTENT_TYPE'];
-			//GET
-			$reqGet=array_merge(
-				self::$scFlight['event']['queryString'],
-				self::$scFlight['event']['queryStringParameters']
-			);
-			$_GET=$reqGet;
-			self::$scFlight['get']=$reqGet;
-			//post
+	}
+	static function parseHeaders(){
+		$reqHeaders=array_merge(
+			self::$scFlight['event']['headers'],
+			self::$scFlight['event']['headerParameters']
+		);
+		foreach($reqHeaders as $a=>$b){
+			$_SERVER['HTTP_'.str_replace("-","_",strtoupper($a))]=$b;
+		}
+		//ip method
+		$_SERVER['REMOTE_ADDR']=self::$scFlight['event']["requestContext"]['sourceIp'];
+		$_SERVER['REQUEST_METHOD']=strtoupper(self::$scFlight['event']['httpMethod']);
+		$_SERVER['CONTENT_TYPE']=$_SERVER['HTTP_CONTENT_TYPE'];
+	}
+	static function parseGet(){
+		global $_GET;
+		$reqGet=array_merge(
+			self::$scFlight['event']['queryString'],
+			self::$scFlight['event']['queryStringParameters']
+		);
+		$_GET=$reqGet;
+		self::$scFlight['get']=$reqGet;
+	}
+	static function parsePost(){
+		global $_POST,$_FILES;
 			$post=[];
 			$file=[];
 			if($_SERVER['REQUEST_METHOD']=="POST"){
@@ -90,6 +79,25 @@ class xyTokiSCF{
 			self::$scFlight['file']=$file;
 			$_POST=$post;
 			$_FILES=$file;
+	}
+	static function parseCookies(){
+
+	}
+	static function load(){
+		self::replaceClasses();
+		Flight::before("start",function(&$params, &$output){
+            //全局清理
+            self::clean();
+
+			//保存全局变量
+			self::$scFlight=[
+				"event"=>json_decode(json_encode($params[0]),true),
+				"context"=>$params[1]
+			];
+			self::parseHeaders();
+			self::parseGet();
+			self::parsePost();
+			self::parseCookies();
 			//路径配置
 			if(!Flight::get("scf_name"))Flight::set("scf_name",self::$scFlight['context']->function_name);
 			if(!Flight::get("scf_base"))Flight::set("scf_base",'/'.self::$scFlight['event']['requestContext']['stage'].'/'.self::$scFlight['context']->function_name);
