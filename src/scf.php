@@ -3,6 +3,7 @@ use Riverline\MultiPartParser\StreamedPart;
 class xyTokiSCF{
 	static $scFlight;
 	static $cookies;
+	static $setcookies;
 	static function strrep1($needle, $replace, $haystack) {
 		$pos = strpos($haystack, $needle);
 		if ($pos === false) {
@@ -17,7 +18,7 @@ class xyTokiSCF{
     static function clean(){
         Flight::request()->__construct();
         Flight::response()->clear();
-        Flight::router()->reset();
+		Flight::router()->reset();
 	}
 	static function parseHeaders(){
 		$reqHeaders=array_merge(
@@ -98,6 +99,7 @@ class xyTokiSCF{
 	}
 	static function load(){
 		self::replaceClasses();
+		Flight::map("setcookie",[__CLASS__,"setcookie"]);
 		Flight::before("start",function(&$params, &$output){
             //全局清理
             self::clean();
@@ -135,6 +137,7 @@ class xyTokiSCF{
 			}
 		});
 		Flight::after("start",function(&$params, &$output){
+			self::outputCookies();
 			$response = Flight::response();
 			$tmpHeaders=$response->headers;
 			$response->write(ob_get_clean());
@@ -151,6 +154,31 @@ class xyTokiSCF{
 				'body' => $response->body
 			];
 		});
+	}
+	function outputCookies(){
+		$count = 0;
+		foreach(self::$setcookies as $name=>$cookie){
+			$count++;
+			$key="Set-Cookie".str_repeat(" ",$count);
+			list ($value,$options) = $cookie;
+			$header  = rawurlencode($name) . '=' . rawurlencode($value) . '; ';
+			if($options['expires']) $header .= 'expires=' . \gmdate('D, d-M-Y H:i:s T', $options['expires']) . '; ';
+			if($options['expires']) $header .= 'Max-Age=' . max(0, (int) ($options['expires'] - time())) . '; ';
+			if($options['path']) 	$header .= 'path=' . join('/', array_map('rawurlencode', explode('/', $options['path']))). '; ';
+			if($options['domain']) 	$header .= 'domain=' . rawurlencode($options['domain']) . '; ';
+		
+			if( !empty($options['secure']) )	$header .= 'secure; ';
+			if( !empty($options['httponly']) ) 	$header .= 'httponly; ';
+			if( !empty($options['samesite']) ) 	$header .= 'SameSite=' . rawurlencode($options['samesite']);
+
+			Flight::response()->header($key,$header);
+		}
+	}
+	function setcookie($name, $value, array $options=[]) {
+		self::$cookies[$name] = $value;
+		self::$setcookies[$name] = [$value,$options];
+		$_COOKIE[$name] = $value;
+		return true;
 	}
 }
 if(isset($_ENV['TENCENTCLOUD_RUNENV']))xyTokiSCF::load();
