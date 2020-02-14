@@ -6,6 +6,7 @@ class xyTokiSCF{
 	static $context;
 	static $cookies;
 	static $setcookies=[];
+	static $wwwRoot=false;
 	static function strrep1($needle, $replace, $haystack) {
 		$pos = strpos($haystack, $needle);
 		if ($pos === false) {
@@ -104,13 +105,30 @@ class xyTokiSCF{
 		$_COOKIE=$cookies;
 		self::$cookies=$cookies;
 	}
+    static function serveStatic(){
+        Flight::route("*",function(){
+            if(!self::$wwwRoot)return true;
+			$file=self::$wwwRoot.Flight::request()->url;
+            Flight::response()->header("x-scstatic",$file);
+			if(!is_file($file))return true;
+			$ext = pathinfo($file, PATHINFO_EXTENSION);
+			$mimes = new \Mimey\MimeTypes;
+			$filemime=$mimes->getMimeType($ext);
+			if($filemime=="application/php"){
+				echo "No input file specified.";
+				return;
+			}
+			Flight::response()->header("Content-Type",$filemime);
+			echo file_get_contents($file);
+		});
+    }
 	static function load(){
 		self::replaceClasses();
 		Flight::map("setcookie",[__CLASS__,"setcookie"]);
 		Flight::before("start",function(&$params, &$output){
             //全局清理
-            self::clean();
-
+			self::clean();
+			
 			//保存全局变量
 			self::$scFlight=[
 				"event"=>json_decode(json_encode($params[0]),true),
@@ -133,20 +151,7 @@ class xyTokiSCF{
 			Flight::request()->base=Flight::get("scf_base");
 			
 			if($params[2]){
-				Flight::set("scf_static",$params[2]);
-				Flight::route("*",function(){
-					$file=Flight::get("scf_static").Flight::request()->url;
-					if(!is_file($file))return true;
-					$ext = pathinfo($file, PATHINFO_EXTENSION);
-					$mimes = new \Mimey\MimeTypes;
-					$filemime=$mimes->getMimeType($ext);
-					if($filemime=="application/php"){
-						echo "No input file specified.";
-						return;
-					}
-					Flight::response()->header("Content-Type",$filemime);
-					echo file_get_contents($file);
-				});
+                self::$wwwRoot=$params[2];
 			}
 		});
 		Flight::after("start",function(&$params, &$output){
@@ -169,6 +174,7 @@ class xyTokiSCF{
 				'body' => $response->body
 			];
 		});
+        self::serveStatic();
 	}
 	static function outputCookies(){
 		$count = 0;
