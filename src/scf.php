@@ -109,8 +109,8 @@ class xyTokiSCF{
         Flight::route("*",function(){
             if(!self::$wwwRoot)return true;
 			$file=self::$wwwRoot.Flight::request()->url;
-            Flight::response()->header("x-scstatic",$file);
 			if(!is_file($file))return true;
+            Flight::response()->header("X-SCF-ServingStatic","true");
 			$ext = pathinfo($file, PATHINFO_EXTENSION);
 			$mimes = new \Mimey\MimeTypes;
 			$filemime=$mimes->getMimeType($ext);
