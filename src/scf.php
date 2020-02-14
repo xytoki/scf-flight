@@ -121,10 +121,8 @@ class xyTokiSCF{
 			Flight::response()->header("Content-Type",$filemime);
 			echo file_get_contents($file);
 		});
-    }
-	static function load(){
-		self::replaceClasses();
-		Flight::map("setcookie",[__CLASS__,"setcookie"]);
+	}
+	static function hookInput(){
 		Flight::before("start",function(&$params, &$output){
             //全局清理
 			self::clean();
@@ -154,6 +152,8 @@ class xyTokiSCF{
                 self::$wwwRoot=$params[2];
 			}
 		});
+	}
+	static function hookOutput(){
 		Flight::after("start",function(&$params, &$output){
 			self::outputCookies();
 			$response = Flight::response();
@@ -174,7 +174,18 @@ class xyTokiSCF{
 				'body' => $response->body
 			];
 		});
-        self::serveStatic();
+	}
+	static function load(){
+		Flight::map("setcookie",[__CLASS__,"setcookie"]);
+		if(!isset($_ENV['TENCENTCLOUD_RUNENV'])){
+			//Normal env
+			return false;
+		}
+		self::replaceClasses();
+		self::hookInput();
+		self::hookOutput();
+		self::serveStatic();
+		return true;
 	}
 	static function outputCookies(){
 		$count = 0;
@@ -202,4 +213,4 @@ class xyTokiSCF{
 		return true;
 	}
 }
-if(isset($_ENV['TENCENTCLOUD_RUNENV']))xyTokiSCF::load();
+xyTokiSCF::load();
