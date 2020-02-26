@@ -147,14 +147,18 @@ class xyTokiSCF{
 			self::parsePost();
 			self::parseCookies();
 			//路径配置
-			if(!Flight::get("scf_name"))Flight::set("scf_name",self::$scFlight['context']->function_name);
-			if(!Flight::get("scf_base"))Flight::set("scf_base",'/'.self::$scFlight['event']['requestContext']['stage'].'/'.self::$scFlight['context']->function_name);
-			$path=self::strrep1('/'.Flight::get("scf_name"),'',self::$scFlight['event']['path']);
+			if(!$_ENV["scf_name"]){
+				$_ENV["scf_name"] = self::$scFlight['context']->function_name;
+			}
+			if(!$_ENV["scf_base"]){
+				$_ENV["scf_base"] = '/'.self::$scFlight['event']['requestContext']['stage'].'/'.self::$scFlight['context']->function_name;
+			}
+			$path=self::strrep1('/'.$_ENV["scf_name"],'',self::$scFlight['event']['path']);
 
 			Flight::request()->__construct();
 			Flight::request()->url=$path;
 			Flight::request()->method=$_SERVER['REQUEST_METHOD'];
-			Flight::request()->base=Flight::get("scf_base");
+			Flight::request()->base=$_ENV["scf_base"];
 			
 			if($params[2]){
                 self::$wwwRoot=$params[2];
