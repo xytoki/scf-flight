@@ -6,6 +6,7 @@ class xyTokiSCF{
 	static $context;
 	static $cookies;
 	static $setcookies=[];
+	static $origserver=[];
 	static $wwwRoot=false;
 	static function strrep1($needle, $replace, $haystack) {
 		$pos = strpos($haystack, $needle);
@@ -22,17 +23,24 @@ class xyTokiSCF{
 		Flight::response()->clear();
 		Flight::response()->sent=false;
 		Flight::router()->reset();
-		global $_GET,$_POST,$_COOKIE,$_FILES;
+		global $_GET,$_POST,$_COOKIE,$_FILES,$_SERVER;
 		$_GET=[];
 		$_POST=[];
 		$_COOKIE=[];
 		$_FILES=[];
+		if(self::$origserver){
+			$_SERVER=self::$origserver;
+		}
+        self::$setcookies=[];
 	}
 	static function parseHeaders(){
 		$reqHeaders=array_merge(
 			self::$scFlight['event']['headers'],
 			self::$scFlight['event']['headerParameters']
 		);
+		if(!self::$origserver){
+			self::$origserver=$_SERVER;
+		}
 		foreach($reqHeaders as $a=>$b){
 			$_SERVER['HTTP_'.str_replace("-","_",strtoupper($a))]=$b;
 		}
