@@ -219,8 +219,26 @@ class xyTokiSCF{
 		}
 	}
 	static function setcookie($name, $value, array $options=[]) {
+		if(!isset($_ENV['TENCENTCLOUD_RUNENV'])){
+			return self::_polyfill_setcookie($name, $value, $options);
+		}
 		self::$cookies[$name] = $value;
 		self::$setcookies[$name] = [$value,$options];
+		$_COOKIE[$name] = $value;
+		return true;
+	}
+	static function _polyfill_setcookie($name, $value, array $options) {
+		$header = 'Set-Cookie:';
+		$header .= rawurlencode($name) . '=' . rawurlencode($value) . '; ';
+		if($options['expires']) $header .= 'expires=' . \gmdate('D, d-M-Y H:i:s T', $options['expires']) . '; ';
+		if($options['expires']) $header .= 'Max-Age=' . max(0, (int) ($options['expires'] - time())) . '; ';
+		if($options['path']) 	$header .= 'path=' . join('/', array_map('rawurlencode', explode('/', $options['path']))). '; ';
+		if($options['domain']) 	$header .= 'domain=' . rawurlencode($options['domain']) . '; ';
+	
+		if( !empty($options['secure']) )	$header .= 'secure; ';
+		if( !empty($options['httponly']) ) 	$header .= 'httponly; ';
+		if( !empty($options['samesite']) ) 	$header .= 'SameSite=' . rawurlencode($options['samesite']);
+		header($header, false);
 		$_COOKIE[$name] = $value;
 		return true;
 	}
